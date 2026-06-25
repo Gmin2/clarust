@@ -1,0 +1,7 @@
+[package]
+name = "clarust-lang"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clarust-macros = { path = "../clarust-macros" }
