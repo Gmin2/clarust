@@ -1,0 +1,5 @@
+/target
+.work
+.cargo-home
+clarity-out
+Cargo.lock
