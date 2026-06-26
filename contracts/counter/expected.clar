@@ -1,0 +1,11 @@
+(define-data-var count uint u0)
+(define-public (increment (step uint))
+  (let ((new-count (+ (var-get count) step)))
+    (begin
+      (var-set count new-count)
+      (ok new-count))))
+(define-public (decrement (step uint))
+  (let ((current (var-get count)))
+    (if (> step current) (err u1) (begin (var-set count (- current step)) (ok (var-get count))))))
+(define-read-only (get-count)
+  (var-get count))
