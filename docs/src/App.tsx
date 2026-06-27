@@ -1,9 +1,12 @@
+import { DialRoot } from "dialkit"
+import "dialkit/styles.css"
 import { TopNav } from "./components/TopNav"
 import { Sidebar } from "./components/Sidebar"
 import { MainContent } from "./components/MainContent"
 import { RightToc } from "./components/RightToc"
 import { Footer } from "./components/Footer"
 import { CookieBanner } from "./components/CookieBanner"
+import { LayoutDials } from "./components/LayoutDials"
 
 export default function App() {
   return (
@@ -18,6 +21,8 @@ export default function App() {
       </div>
       <Footer />
       <CookieBanner />
+      <LayoutDials />
+      <DialRoot position="top-right" />
     </div>
   )
 }

@@ -37,14 +37,21 @@
 }
 
 :root {
-  --container-w: 1073px;
-  --sidebar-w: 257px;
-  --content-w: 619px;
+  --container-w: 1410px;
+  --sidebar-w: 280px;
+  --content-w: 900px;
+  --toc-w: 210px;
   --header-h: 96px;
   --title-size: 25px;
   --nav-size: 13px;
   --logo-size: 22px;
   --main-py: 33px;
+  --main-px: 24px;
+
+  /* hero code panels: 1 = stacked, 2 = side by side */
+  --hero-cols: 2;
+  --code-size: 11.8px;
+  --code-gap: 12px;
 
   /* code token colors */
   --tok-kw: #978eff;

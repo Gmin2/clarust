@@ -152,7 +152,7 @@ pub fn bad(&self) -> Response<Uint, Uint> {
 
 export function MainContent() {
   return (
-    <div className="min-w-0 flex-1 px-4 py-[var(--main-py)] lg:px-10">
+    <div className="min-w-0 flex-1 px-4 py-[var(--main-py)] lg:px-[length:var(--main-px)]">
       <div className="mx-auto max-w-[var(--content-w)]">
         <div className="mb-10 flex items-start justify-between gap-4">
           <h1 className="font-[var(--font-repro)] text-[length:var(--title-size)] font-semibold tracking-[-0.6px] text-ink">

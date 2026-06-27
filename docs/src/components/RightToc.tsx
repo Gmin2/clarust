@@ -35,7 +35,7 @@ export function RightToc() {
   }, [])
 
   return (
-    <aside className="hidden xl:block w-[220px] shrink-0">
+    <aside className="hidden xl:block w-[var(--toc-w)] shrink-0">
       <div className="sticky top-[60px] max-h-[calc(100vh-60px)] overflow-y-auto px-2 py-10">
         <p className="mb-3 px-3 font-[var(--font-repro)] text-[13px] font-medium tracking-[-0.09px] text-grey-2">
           On this page

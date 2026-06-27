@@ -1,52 +1,38 @@
 import type { ComponentType, SVGProps } from "react"
-import { Doc, Grid, Layers, Tools, Rocket, Globe, Shield, Book, Coin, Chevron } from "./icons"
+import { Doc, Grid, Layers, Tools, Rocket, Shield, Coin } from "./icons"
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>
 
-type Item = { label: string; icon: Icon; chevron?: boolean; active?: boolean; muted?: boolean }
+type Item = { label: string; icon: Icon; href: string; active?: boolean }
 type Group = { title: string; items: Item[] }
 
 const groups: Group[] = [
   {
     title: "Introduction",
     items: [
-      { label: "Overview", icon: Doc, active: true },
-      { label: "Quickstart", icon: Rocket, chevron: true },
-      { label: "Why Rust", icon: Grid },
+      { label: "Overview", icon: Doc, href: "#", active: true },
+      { label: "Quickstart", icon: Rocket, href: "#quickstart" },
     ],
   },
   {
     title: "Writing contracts",
     items: [
-      { label: "Storage", icon: Layers, chevron: true },
-      { label: "Functions", icon: Tools, chevron: true },
-      { label: "Types", icon: Grid, chevron: true },
-      { label: "Control flow", icon: Doc, chevron: true },
-      { label: "Guards", icon: Shield },
+      { label: "Storage", icon: Layers, href: "#storage" },
+      { label: "Functions", icon: Tools, href: "#functions" },
+      { label: "Types", icon: Grid, href: "#types" },
+      { label: "Control flow", icon: Doc, href: "#control-flow" },
     ],
   },
   {
     title: "Tokens",
     items: [
-      { label: "Fungible (FT)", icon: Coin, chevron: true },
-      { label: "Non-fungible (NFT)", icon: Coin, chevron: true },
-      { label: "SIP-010 trait", icon: Doc, chevron: true },
+      { label: "Tokens", icon: Coin, href: "#tokens" },
+      { label: "SIP-010 trait", icon: Doc, href: "#sip-010" },
     ],
   },
   {
     title: "Tooling",
-    items: [
-      { label: "clarinet check", icon: Tools, chevron: true },
-      { label: "Conformance", icon: Shield },
-      { label: "Deploy", icon: Globe, chevron: true },
-    ],
-  },
-  {
-    title: "Reference",
-    items: [
-      { label: "clarust-lang", icon: Book, muted: true },
-      { label: "Macros", icon: Book, muted: true },
-    ],
+    items: [{ label: "Verifying", icon: Shield, href: "#verifying" }],
   },
 ]
 
@@ -54,14 +40,12 @@ function Row({ item }: { item: Item }) {
   const Ico = item.icon
   return (
     <a
-      href="#"
+      href={item.href}
       className={[
         "group flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[14px] transition-colors duration-200 ease-out",
         item.active
           ? "bg-[#978eff]/[0.08] text-ink font-medium"
-          : item.muted
-            ? "text-grey-4 hover:bg-[#1a1a1a]/[0.04] hover:text-grey-2"
-            : "text-grey-2 hover:bg-[#1a1a1a]/[0.04] hover:text-ink",
+          : "text-grey-2 hover:bg-[#1a1a1a]/[0.04] hover:text-ink",
       ].join(" ")}
     >
       <Ico
@@ -72,9 +56,6 @@ function Row({ item }: { item: Item }) {
         style={{ transition: "opacity 0.15s, transform 0.2s ease-out" }}
       />
       <span className="flex-1 tracking-[-0.09px]">{item.label}</span>
-      {item.chevron && (
-        <Chevron className="h-3.5 w-3.5 shrink-0 text-grey-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
-      )}
     </a>
   )
 }

@@ -65,7 +65,7 @@ export function CodeBlock({ lang, code }: { lang: string; code: string }) {
           <span className="h-2 w-2 rounded-full bg-grey-4/50" />
         </span>
       </div>
-      <pre className="overflow-x-auto px-4 py-4 font-[var(--font-mono)] text-[12.5px] leading-[20px] text-ink">
+      <pre className="overflow-x-auto px-4 py-4 font-[var(--font-mono)] text-[length:var(--code-size)] leading-[1.6] text-ink">
         <code>
           {lines.map((ln, idx) => (
             <div key={idx}>{ln.length ? highlightLine(ln, idx) : " "}</div>
@@ -78,7 +78,13 @@ export function CodeBlock({ lang, code }: { lang: string; code: string }) {
 
 export function CodeCompare({ rust, clarity }: { rust: string; clarity: string }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div
+      className="grid"
+      style={{
+        gap: "var(--code-gap)",
+        gridTemplateColumns: "repeat(var(--hero-cols), minmax(0, 1fr))",
+      }}
+    >
       <CodeBlock lang="counter.rs" code={rust} />
       <CodeBlock lang="counter.clar" code={clarity} />
     </div>
