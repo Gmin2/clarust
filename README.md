@@ -1,6 +1,6 @@
-# clarust
+# Clarust
 
-write a Stacks smart contract in real Rust, compile it to Clarity.
+Write a Stacks smart contract in real Rust, compile it to Clarity.
 
 you write a normal `.rs` file against the `clarust-lang` crate, so rustc type-checks
 it and rust-analyzer gives you autocomplete, exactly like writing an Anchor program
@@ -77,17 +77,18 @@ seam, so another language could be added later, but real Rust is what ships.
 
 ## try it
 
+```bash
+cargo build --release
 ```
-CARGO_HOME="$PWD/.cargo-home" cargo build --release
 
+```bash
 # transpile a contract to clarity, with teaching comments
 ./target/release/clarust contracts/counter/src/lib.rs
+```
 
+```bash
 # run clarinet on it; errors point back at your rust source line
 ./target/release/clarust contracts/counter/src/lib.rs --check
-
-# the whole gate: every contract compiles under rustc, matches its golden, passes clarinet
-bash conformance/run.sh
 ```
 
 ## what works today
