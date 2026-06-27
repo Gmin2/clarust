@@ -76,7 +76,17 @@ export function CodeBlock({ lang, code }: { lang: string; code: string }) {
   )
 }
 
-export function CodeCompare({ rust, clarity }: { rust: string; clarity: string }) {
+export function CodeCompare({
+  rust,
+  clarity,
+  rustName = "counter.rs",
+  clarityName = "counter.clar",
+}: {
+  rust: string
+  clarity: string
+  rustName?: string
+  clarityName?: string
+}) {
   return (
     <div
       className="grid"
@@ -85,8 +95,8 @@ export function CodeCompare({ rust, clarity }: { rust: string; clarity: string }
         gridTemplateColumns: "repeat(var(--hero-cols), minmax(0, 1fr))",
       }}
     >
-      <CodeBlock lang="counter.rs" code={rust} />
-      <CodeBlock lang="counter.clar" code={clarity} />
+      <CodeBlock lang={rustName} code={rust} />
+      <CodeBlock lang={clarityName} code={clarity} />
     </div>
   )
 }

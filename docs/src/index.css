@@ -37,21 +37,21 @@
 }
 
 :root {
-  --container-w: 1410px;
-  --sidebar-w: 280px;
-  --content-w: 900px;
-  --toc-w: 210px;
+  --container-w: 1360px;
+  --sidebar-w: 220px;
+  --content-w: 830px;
+  --toc-w: 160px;
   --header-h: 96px;
   --title-size: 25px;
   --nav-size: 13px;
   --logo-size: 22px;
   --main-py: 33px;
-  --main-px: 24px;
+  --main-px: 8px;
 
   /* hero code panels: 1 = stacked, 2 = side by side */
   --hero-cols: 2;
-  --code-size: 11.8px;
-  --code-gap: 12px;
+  --code-size: 12.3px;
+  --code-gap: 5px;
 
   /* code token colors */
   --tok-kw: #978eff;
