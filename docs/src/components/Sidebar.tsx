@@ -1,6 +1,6 @@
 import { useState, type ComponentType, type SVGProps } from "react"
 import { NavLink } from "react-router-dom"
-import { Doc, Grid, Layers, Tools, Rocket, Shield, Coin } from "./icons"
+import { Doc, Grid, Layers, Tools, Rocket, Shield, Coin, Book } from "./icons"
 import { Chevron } from "./icons"
 import { pages, pageHref } from "../pages/nav"
 import { examples } from "../examples"
@@ -18,6 +18,8 @@ const pageIcons: Record<string, Icon> = {
   "sip-010": Doc,
   verifying: Shield,
   limits: Doc,
+  macros: Tools,
+  prelude: Book,
 }
 
 const exampleIcons: Record<string, Icon> = {

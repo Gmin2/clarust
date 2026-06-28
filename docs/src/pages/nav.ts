@@ -13,6 +13,8 @@ export const pages: PageMeta[] = [
   { slug: "sip-010", title: "SIP-010 trait", group: "Tokens" },
   { slug: "verifying", title: "Verifying", group: "Tooling" },
   { slug: "limits", title: "What doesn't map", group: "Tooling" },
+  { slug: "macros", title: "Macros", group: "Reference" },
+  { slug: "prelude", title: "clarust-lang", group: "Reference" },
 ]
 
 export function pageHref(slug: string): string {

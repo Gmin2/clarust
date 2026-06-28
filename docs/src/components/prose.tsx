@@ -32,6 +32,29 @@ export function Code({ children }: { children: string }) {
   )
 }
 
+export function Table({ head, rows }: { head: [string, string]; rows: [string, string][] }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-ink/[0.07]">
+      <table className="w-full text-[14px]">
+        <thead>
+          <tr className="border-b border-ink/[0.06] bg-paper-2 text-left text-grey-2">
+            <th className="px-4 py-2.5 font-medium">{head[0]}</th>
+            <th className="px-4 py-2.5 font-medium">{head[1]}</th>
+          </tr>
+        </thead>
+        <tbody className="text-grey-1">
+          {rows.map(([a, b]) => (
+            <tr key={a} className="border-b border-ink/[0.04] last:border-0 align-top">
+              <td className="px-4 py-2 font-[var(--font-mono)] text-[12.5px] whitespace-nowrap">{a}</td>
+              <td className="px-4 py-2 text-[13.5px] leading-[20px] text-grey-2">{b}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export function Callout({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center gap-3 rounded-[10px] border border-ink/[0.06] bg-paper-2 px-4 py-3.5">

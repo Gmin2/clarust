@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { useParams } from "react-router-dom"
 import { CodeBlock } from "../components/CodeBlock"
 import { Page, PrevNext } from "../components/Page"
-import { Link, P, Code, Callout } from "../components/prose"
+import { Link, H2, P, Code, Callout, Table } from "../components/prose"
 import { pages, pageNav, pageHref } from "./nav"
 
 const STORAGE = `#[contract]
@@ -55,6 +55,62 @@ const TYPE_ROWS: [string, string][] = [
   ["Response<T, E>", "(response T E)"],
 ]
 
+const MACRO_EXAMPLE = `use clarust_lang::prelude::*;
+
+#[contract]
+#[impl_trait(".sip-010-trait.sip-010-trait")]
+pub struct Token {
+    supply: DataVar<Uint>,
+}
+
+#[contract_impl]
+impl Token {
+    #[public]
+    pub fn mint(&self, amount: Uint) -> Response<Uint, Uint> {
+        let next = self.bump(amount);
+        ok(next)
+    }
+
+    #[readonly]
+    pub fn total(&self) -> Uint {
+        self.supply.get()
+    }
+
+    #[private]
+    fn bump(&self, amount: Uint) -> Uint {
+        let next = self.supply.get() + amount;
+        self.supply.set(next);
+        next
+    }
+}`
+
+const MACRO_ROWS: [string, string][] = [
+  ["#[contract]", "on a struct: this is the contract, its fields become storage"],
+  ["#[contract_impl]", "on an impl block: its methods become contract functions"],
+  ["#[public]", "(define-public ...), an entry point that must return a Response"],
+  ["#[readonly]", "(define-read-only ...), cannot mutate state"],
+  ["#[private]", "(define-private ...), an internal helper, not callable from outside"],
+  ['#[impl_trait("...")]', "(impl-trait ...), promises the contract matches a trait; clarinet enforces it"],
+]
+
+const STORAGE_ROWS: [string, string][] = [
+  ["DataVar<T>", "define-data-var. .get() reads (var-get), .set(v) writes (var-set)"],
+  ["Map<K, V>", "define-map. .get(k) returns an Option (map-get?), .set/.insert/.delete write"],
+  ["FungibleToken", "define-fungible-token, balances tracked by the runtime"],
+  ["NonFungibleToken<Id>", "define-non-fungible-token keyed by Id"],
+]
+
+const HELPER_ROWS: [string, string][] = [
+  ["ok(v) / err(e)", "the two arms of a Response: (ok v) / (err e)"],
+  ["some(v) / none()", "an optional value: (some v) / none"],
+  ["tx_sender()", "the caller, tx-sender"],
+  ["asserts(cond, code)", "guard: (asserts! cond (err code)), aborts the tx when cond is false"],
+  ["ft_mint / ft_transfer", "ft-mint? / ft-transfer? on a FungibleToken"],
+  ["ft_get_balance / ft_get_supply", "ft-get-balance / ft-get-supply"],
+  ["nft_mint / nft_transfer", "nft-mint? / nft-transfer? on a NonFungibleToken"],
+  ["nft_get_owner", "nft-get-owner?, returns an Option"],
+]
+
 const bodies: Record<string, () => ReactNode> = {
   storage: () => (
     <>
@@ -84,24 +140,7 @@ const bodies: Record<string, () => ReactNode> = {
   types: () => (
     <>
       <P>the types in <Code>clarust-lang</Code> mirror Clarity's model, so the mapping is direct:</P>
-      <div className="overflow-hidden rounded-xl border border-ink/[0.07]">
-        <table className="w-full text-[14px]">
-          <thead>
-            <tr className="border-b border-ink/[0.06] bg-paper-2 text-left text-grey-2">
-              <th className="px-4 py-2.5 font-medium">Rust</th>
-              <th className="px-4 py-2.5 font-medium">Clarity</th>
-            </tr>
-          </thead>
-          <tbody className="font-[var(--font-mono)] text-[13px] text-grey-1">
-            {TYPE_ROWS.map(([r, c]) => (
-              <tr key={r} className="border-b border-ink/[0.04] last:border-0">
-                <td className="px-4 py-2">{r}</td>
-                <td className="px-4 py-2 text-grey-2">{c}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Table head={["Rust", "Clarity"]} rows={TYPE_ROWS} />
     </>
   ),
   "control-flow": () => (
@@ -157,6 +196,40 @@ const bodies: Record<string, () => ReactNode> = {
         emitting something broken.
       </P>
       <CodeBlock lang="rust" code={LOOPS} />
+    </>
+  ),
+  macros: () => (
+    <>
+      <P>
+        the attributes come from <Code>clarust-macros</Code> and are re-exported by the prelude. at
+        build time they pass the item through unchanged, so rustc compiles your contract like any
+        Rust; the clarust compiler reads them to decide what each item becomes.
+      </P>
+      <Table head={["Attribute", "What it does"]} rows={MACRO_ROWS} />
+      <P>a contract using them together:</P>
+      <CodeBlock lang="rust" code={MACRO_EXAMPLE} />
+      <Callout>
+        <Code>#[private]</Code> functions are not callable from outside the contract; use them for
+        shared logic between your public and read-only functions.
+      </Callout>
+    </>
+  ),
+  prelude: () => (
+    <>
+      <P>
+        everything you write a contract against comes from one import,{" "}
+        <Code>use clarust_lang::prelude::*</Code>. it is split into storage, the value types, and a
+        set of helpers that map to Clarity builtins.
+      </P>
+      <H2 id="storage-types">Storage</H2>
+      <P>the four kinds of contract storage, written as struct fields:</P>
+      <Table head={["Type", "Lowers to"]} rows={STORAGE_ROWS} />
+      <H2 id="value-types">Value types</H2>
+      <P>used for parameters, return types, and locals:</P>
+      <Table head={["Rust", "Clarity"]} rows={TYPE_ROWS} />
+      <H2 id="helpers">Helpers</H2>
+      <P>functions you call inside a body, each maps to a Clarity builtin:</P>
+      <Table head={["Helper", "Maps to"]} rows={HELPER_ROWS} />
     </>
   ),
 }
