@@ -23,7 +23,7 @@ const navItems: { label: string; to: string; external?: boolean }[] = [
   { label: "Clarinet", to: "https://github.com/hirosystems/clarinet", external: true },
 ]
 
-export function TopNav() {
+export function TopNav({ onOpenSearch }: { onOpenSearch: () => void }) {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[#201d1d]/[0.06]">
       <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--container-w)] items-center justify-between px-8">
@@ -68,6 +68,7 @@ export function TopNav() {
           </a>
           <button
             aria-label="Search"
+            onClick={onOpenSearch}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1a1a1a] text-white transition-opacity duration-200 ease-out hover:opacity-80"
           >
             <Search className="[&_*]:stroke-white" />

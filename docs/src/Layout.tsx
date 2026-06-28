@@ -1,9 +1,10 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Outlet, useLocation } from "react-router-dom"
 import { TopNav } from "./components/TopNav"
 import { Sidebar } from "./components/Sidebar"
 import { Footer } from "./components/Footer"
 import { CookieBanner } from "./components/CookieBanner"
+import { Search } from "./components/Search"
 
 function ScrollManager() {
   const { pathname, hash } = useLocation()
@@ -21,10 +22,23 @@ function ScrollManager() {
 }
 
 export function Layout() {
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault()
+        setSearchOpen((v) => !v)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
+
   return (
     <div className="min-h-screen bg-white text-ink">
       <ScrollManager />
-      <TopNav />
+      <TopNav onOpenSearch={() => setSearchOpen(true)} />
       <div className="mx-auto flex max-w-[var(--container-w)] px-4 lg:px-8">
         <Sidebar />
         <main className="flex min-w-0 flex-1">
@@ -33,6 +47,7 @@ export function Layout() {
       </div>
       <Footer />
       <CookieBanner />
+      <Search open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   )
 }
