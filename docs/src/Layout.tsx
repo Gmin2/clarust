@@ -3,7 +3,6 @@ import { Outlet, useLocation } from "react-router-dom"
 import { TopNav } from "./components/TopNav"
 import { Sidebar } from "./components/Sidebar"
 import { Footer } from "./components/Footer"
-import { CookieBanner } from "./components/CookieBanner"
 import { Search } from "./components/Search"
 
 function ScrollManager() {
@@ -46,7 +45,6 @@ export function Layout() {
         </main>
       </div>
       <Footer />
-      <CookieBanner />
       <Search open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   )
