@@ -60,12 +60,12 @@ export function TopNav({ onOpenSearch }: { onOpenSearch: () => void }) {
         </nav>
 
         <div className="flex items-center gap-3">
-          <a
-            href="#"
+          <Link
+            to="/getting-started"
             className="rounded-full bg-[#1a1a1a] px-6 py-2.5 text-[15px] font-medium text-white transition-opacity duration-200 ease-out hover:opacity-80"
           >
             Get started
-          </a>
+          </Link>
           <button
             aria-label="Search"
             onClick={onOpenSearch}
