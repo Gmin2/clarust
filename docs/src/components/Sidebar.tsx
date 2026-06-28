@@ -1,39 +1,24 @@
 import { useState, type ComponentType, type SVGProps } from "react"
-import { NavLink, Link } from "react-router-dom"
-import { Doc, Grid, Layers, Tools, Rocket, Shield, Coin, Chevron } from "./icons"
+import { NavLink } from "react-router-dom"
+import { Doc, Grid, Layers, Tools, Rocket, Shield, Coin } from "./icons"
+import { Chevron } from "./icons"
+import { pages, pageHref } from "../pages/nav"
 import { examples } from "../examples"
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>
 
-const conceptGroups: { title: string; items: { label: string; icon: Icon; to: string }[] }[] = [
-  {
-    title: "Introduction",
-    items: [
-      { label: "Overview", icon: Doc, to: "/" },
-      { label: "Quickstart", icon: Rocket, to: "/#quickstart" },
-    ],
-  },
-  {
-    title: "Writing contracts",
-    items: [
-      { label: "Storage", icon: Layers, to: "/#storage" },
-      { label: "Functions", icon: Tools, to: "/#functions" },
-      { label: "Types", icon: Grid, to: "/#types" },
-      { label: "Control flow", icon: Doc, to: "/#control-flow" },
-    ],
-  },
-  {
-    title: "Tokens",
-    items: [
-      { label: "Tokens", icon: Coin, to: "/#tokens" },
-      { label: "SIP-010 trait", icon: Doc, to: "/#sip-010" },
-    ],
-  },
-  {
-    title: "Tooling",
-    items: [{ label: "Verifying", icon: Shield, to: "/#verifying" }],
-  },
-]
+const pageIcons: Record<string, Icon> = {
+  "": Doc,
+  "getting-started": Rocket,
+  storage: Layers,
+  functions: Tools,
+  types: Grid,
+  "control-flow": Doc,
+  tokens: Coin,
+  "sip-010": Doc,
+  verifying: Shield,
+  limits: Doc,
+}
 
 const exampleIcons: Record<string, Icon> = {
   counter: Grid,
@@ -47,39 +32,11 @@ const exampleIcons: Record<string, Icon> = {
 const rowBase =
   "group flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[14px] transition-colors duration-200 ease-out"
 
-function HashRow({ label, icon: Ico, to }: { label: string; icon: Icon; to: string }) {
-  const isOverview = to === "/"
+function Row({ to, label, icon: Ico, end }: { to: string; label: string; icon: Icon; end?: boolean }) {
   return (
     <NavLink
       to={to}
-      end={isOverview}
-      className={({ isActive }) =>
-        [
-          rowBase,
-          isActive && isOverview
-            ? "bg-[#978eff]/[0.08] text-ink font-medium"
-            : "text-grey-2 hover:bg-[#1a1a1a]/[0.04] hover:text-ink",
-        ].join(" ")
-      }
-    >
-      {({ isActive }) => (
-        <>
-          <Ico
-            className={["shrink-0 group-hover:scale-105 group-hover:-translate-y-px", isActive && isOverview ? "text-accent" : "opacity-90"].join(" ")}
-            style={{ transition: "opacity 0.15s, transform 0.2s ease-out" }}
-          />
-          <span className="flex-1 tracking-[-0.09px]">{label}</span>
-        </>
-      )}
-    </NavLink>
-  )
-}
-
-function ExampleRow({ slug, title }: { slug: string; title: string }) {
-  const Ico = exampleIcons[slug] ?? Doc
-  return (
-    <NavLink
-      to={`/examples/${slug}`}
+      end={end}
       className={({ isActive }) =>
         [
           rowBase,
@@ -92,10 +49,13 @@ function ExampleRow({ slug, title }: { slug: string; title: string }) {
       {({ isActive }) => (
         <>
           <Ico
-            className={["shrink-0 group-hover:scale-105 group-hover:-translate-y-px", isActive ? "text-accent" : "opacity-90"].join(" ")}
+            className={[
+              "shrink-0 group-hover:scale-105 group-hover:-translate-y-px",
+              isActive ? "text-accent" : "opacity-90",
+            ].join(" ")}
             style={{ transition: "opacity 0.15s, transform 0.2s ease-out" }}
           />
-          <span className="flex-1 tracking-[-0.09px]">{title}</span>
+          <span className="flex-1 tracking-[-0.09px]">{label}</span>
         </>
       )}
     </NavLink>
@@ -113,30 +73,33 @@ function GroupTitle({ children }: { children: string }) {
 export function Sidebar() {
   const [examplesOpen, setExamplesOpen] = useState(true)
 
+  // group the page list in order, preserving first-seen group order
+  const groups: { title: string; items: typeof pages }[] = []
+  for (const p of pages) {
+    let g = groups.find((x) => x.title === p.group)
+    if (!g) {
+      g = { title: p.group, items: [] }
+      groups.push(g)
+    }
+    g.items.push(p)
+  }
+
   return (
     <aside className="hidden lg:block w-[var(--sidebar-w)] shrink-0">
       <nav className="sticky top-[var(--header-h)] max-h-[calc(100vh-var(--header-h))] overflow-y-auto px-3 py-10 pr-4">
-        {conceptGroups.map((g) => (
+        {groups.map((g) => (
           <div key={g.title} className="mb-6">
             <GroupTitle>{g.title}</GroupTitle>
             <div className="flex flex-col gap-0.5">
-              {g.items.map((it) =>
-                it.to.includes("#") ? (
-                  <Link
-                    key={it.label}
-                    to={it.to}
-                    className={`${rowBase} text-grey-2 hover:bg-[#1a1a1a]/[0.04] hover:text-ink`}
-                  >
-                    <it.icon
-                      className="shrink-0 opacity-90 group-hover:scale-105 group-hover:-translate-y-px"
-                      style={{ transition: "opacity 0.15s, transform 0.2s ease-out" }}
-                    />
-                    <span className="flex-1 tracking-[-0.09px]">{it.label}</span>
-                  </Link>
-                ) : (
-                  <HashRow key={it.label} {...it} />
-                ),
-              )}
+              {g.items.map((p) => (
+                <Row
+                  key={p.slug}
+                  to={pageHref(p.slug)}
+                  label={p.title}
+                  icon={pageIcons[p.slug] ?? Doc}
+                  end={p.slug === ""}
+                />
+              ))}
             </div>
           </div>
         ))}
@@ -156,7 +119,12 @@ export function Sidebar() {
           {examplesOpen && (
             <div className="flex flex-col gap-0.5">
               {examples.map((e) => (
-                <ExampleRow key={e.slug} slug={e.slug} title={e.title} />
+                <Row
+                  key={e.slug}
+                  to={`/examples/${e.slug}`}
+                  label={e.title}
+                  icon={exampleIcons[e.slug] ?? Doc}
+                />
               ))}
             </div>
           )}
