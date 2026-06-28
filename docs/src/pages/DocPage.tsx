@@ -5,32 +5,78 @@ import { Page, PrevNext } from "../components/Page"
 import { Link, H2, P, Code, Callout, Table } from "../components/prose"
 import { pages, pageNav, pageHref } from "./nav"
 
-const STORAGE = `#[contract]
-pub struct Ledger {
-    total: DataVar<Uint>,
-    balances: Map<Principal, Uint>,
-}
-// -> (define-data-var total uint u0)
-// -> (define-map balances principal uint)`
-
-const FUNCTIONS = `#[public]
-pub fn deposit(&self, amount: Uint) -> Response<Uint, Uint> {
-    let who = tx_sender();
-    let current = self.balances.get(who).unwrap_or(Uint(0));
-    self.balances.set(who, current + amount);
-    ok(current + amount)
-}
-
-#[readonly]
-pub fn balance_of(&self, who: Principal) -> Uint {
-    self.balances.get(who).unwrap_or(Uint(0))
+const ST_VAR = `#[contract]
+pub struct Counter {
+    count: DataVar<Uint>,    // -> (define-data-var count uint u0)
 }`
 
-const CONTROL = `#[readonly]
-pub fn max_of(&self, a: Uint, b: Uint) -> Uint {
-    if a > b { a } else { b }
+const ST_VAR_USE = `let n = self.count.get();   // (var-get count)
+self.count.set(n + step);   // (var-set count (+ n step))`
+
+const ST_MAP = `#[contract]
+pub struct Ledger {
+    balances: Map<Principal, Uint>,
+    //  -> (define-map balances principal uint)
+}`
+
+const ST_MAP_USE = `let bal = self.balances.get(who).unwrap_or(Uint(0));
+//  (default-to u0 (map-get? balances who))
+self.balances.set(who, bal + amount);
+//  (map-set balances who (+ bal amount))`
+
+const FN_PUBLIC = `#[public]
+pub fn increment(&self, step: Uint) -> Response<Uint, Uint> {
+    let new_count = self.count.get() + step;
+    self.count.set(new_count);
+    ok(new_count)
 }
-// -> (if (> a b) a b)`
+//  -> (define-public (increment (step uint)) ...)`
+
+const FN_READONLY = `#[readonly]
+pub fn get_count(&self) -> Uint {
+    self.count.get()
+}
+//  -> (define-read-only (get-count) (var-get count))`
+
+const CTRL = `#[public]
+pub fn decrement(&self, step: Uint) -> Response<Uint, Uint> {
+    let current = self.count.get();
+    if step > current {
+        err(Uint(1))
+    } else {
+        self.count.set(current - step);
+        ok(self.count.get())
+    }
+}
+//  -> (if (> step current) (err u1) (begin ...))`
+
+const TOK_FT = `#[contract]
+pub struct Coin {
+    coin: FungibleToken,    // -> (define-fungible-token coin)
+}`
+
+const TOK_FT_USE = `ft_mint(self.coin, amount, recipient)
+//  (ft-mint? coin amount recipient)
+ft_transfer(self.coin, amount, sender, recipient)
+//  (ft-transfer? coin amount sender recipient)`
+
+const SIP_IMPL = `#[contract]
+#[impl_trait(".sip-010-trait.sip-010-trait")]
+pub struct Token {
+    clarity_coin: FungibleToken,
+}
+//  -> (impl-trait .sip-010-trait.sip-010-trait)`
+
+const SIP_TRANSFER = `#[public]
+pub fn transfer(&self, amount: Uint, sender: Principal,
+                recipient: Principal, memo: Option<Buff<34>>)
+    -> Response<bool, Uint>
+{
+    asserts(sender == tx_sender(), ERR_NOT_OWNER);
+    ft_transfer(self.clarity_coin, amount, sender, recipient)
+}
+//  (transfer (amount uint) (sender principal)
+//            (recipient principal) (memo (optional (buff 34))))`
 
 const VERIFY = `$ clarust contracts/token/src/lib.rs --check
 error: use of unresolved variable 'foo'
@@ -115,66 +161,139 @@ const bodies: Record<string, () => ReactNode> = {
   storage: () => (
     <>
       <P>
-        struct fields are contract storage. a <Code>DataVar&lt;T&gt;</Code> is a single value
-        (<Code>define-data-var</Code>), a <Code>Map&lt;K, V&gt;</Code> is key/value storage
-        (<Code>define-map</Code>). you read and write through <Code>.get()</Code> and{" "}
-        <Code>.set()</Code> on <Code>self</Code>.
+        a contract's state lives in struct fields. each field is one slot of storage, and its type
+        picks the Clarity declaration. the two you reach for most are a single value and a map.
       </P>
-      <CodeBlock lang="rust" code={STORAGE} />
+      <H2 id="data-var">A single value</H2>
+      <P>
+        a <Code>DataVar&lt;T&gt;</Code> holds one value of type <Code>T</Code>. the counter keeps its
+        running total in one:
+      </P>
+      <CodeBlock lang="rust" code={ST_VAR} />
+      <P>
+        inside a function you read it with <Code>.get()</Code> and write it with <Code>.set()</Code>,
+        which become <Code>var-get</Code> and <Code>var-set</Code>:
+      </P>
+      <CodeBlock lang="rust" code={ST_VAR_USE} />
+      <H2 id="map">A map</H2>
+      <P>
+        a <Code>Map&lt;K, V&gt;</Code> stores one value per key, the way you keep a balance per
+        account. a ledger keeps a <Code>Uint</Code> per <Code>Principal</Code>:
+      </P>
+      <CodeBlock lang="rust" code={ST_MAP} />
+      <P>
+        a map read might find nothing, so <Code>.get()</Code> returns an <Code>Option</Code>. pair it
+        with <Code>.unwrap_or</Code> to supply a default, which lowers to <Code>default-to</Code>:
+      </P>
+      <CodeBlock lang="rust" code={ST_MAP_USE} />
+      <Callout>
+        the other two storage types are tokens, <Code>FungibleToken</Code> and{" "}
+        <Code>NonFungibleToken&lt;Id&gt;</Code>, covered under <Link href="/tokens">Tokens</Link>.
+      </Callout>
     </>
   ),
   functions: () => (
     <>
       <P>
-        methods on the impl become contract functions. <Code>#[public]</Code> is an entry point and
-        must return a <Code>Response</Code>; <Code>#[readonly]</Code> cannot mutate state. the{" "}
-        <Code>&amp;self</Code> receiver is the contract instance, not a Clarity parameter.
+        methods on the <Code>#[contract_impl]</Code> block become the contract's functions. an
+        attribute on each one sets how it can be called.
       </P>
-      <CodeBlock lang="rust" code={FUNCTIONS} />
-      <Callout>
-        map reads come back as an <Code>Option</Code>, so <Code>.unwrap_or(Uint(0))</Code> lowers to{" "}
-        <Code>(default-to u0 (map-get? ...))</Code>.
-      </Callout>
+      <H2 id="public">Public</H2>
+      <P>
+        <Code>#[public]</Code> is an entry point, anyone can call it. it must return a{" "}
+        <Code>Response</Code>, which forces every caller to handle success or failure:
+      </P>
+      <CodeBlock lang="rust" code={FN_PUBLIC} />
+      <H2 id="read-only">Read-only</H2>
+      <P>
+        <Code>#[readonly]</Code> functions are free to call and cannot change state, the compiler
+        enforces it:
+      </P>
+      <CodeBlock lang="rust" code={FN_READONLY} />
+      <H2 id="private">Private</H2>
+      <P>
+        <Code>#[private]</Code> is an internal helper, callable only from other functions in the same
+        contract. across all three, the <Code>&amp;self</Code> receiver is the contract instance,
+        never a Clarity parameter.
+      </P>
     </>
   ),
   types: () => (
     <>
-      <P>the types in <Code>clarust-lang</Code> mirror Clarity's model, so the mapping is direct:</P>
+      <P>
+        the types in <Code>clarust-lang</Code> mirror Clarity's model, so the mapping is direct. you
+        have already seen most of them: the counter uses <Code>Uint</Code>, the ledger uses{" "}
+        <Code>Principal</Code> keys, and the SIP-010 token uses <Code>Option&lt;Buff&lt;34&gt;&gt;</Code>{" "}
+        for its memo.
+      </P>
       <Table head={["Rust", "Clarity"]} rows={TYPE_ROWS} />
     </>
   ),
   "control-flow": () => (
     <>
       <P>
-        <Code>if/else</Code> is an expression and lowers to Clarity's <Code>if</Code>. arithmetic and
-        comparisons map to prefix form (<Code>a + b</Code> to <Code>(+ a b)</Code>,{" "}
-        <Code>a == b</Code> to <Code>(is-eq a b)</Code>).
+        <Code>if/else</Code> is an expression: it evaluates to a value, and it lowers straight to
+        Clarity's <Code>if</Code>. the counter's decrement uses it to refuse to go below zero:
       </P>
-      <CodeBlock lang="rust" code={CONTROL} />
+      <CodeBlock lang="rust" code={CTRL} />
+      <P>
+        both branches produce the function's <Code>Response</Code>. arithmetic and comparisons map to
+        prefix form:
+      </P>
+      <Table
+        head={["Rust", "Clarity"]}
+        rows={[
+          ["a + b", "(+ a b)"],
+          ["a - b", "(- a b)"],
+          ["a == b", "(is-eq a b)"],
+          ["a > b", "(> a b)"],
+          ["a && b", "(and a b)"],
+        ]}
+      />
     </>
   ),
   tokens: () => (
     <>
       <P>
-        a <Code>FungibleToken</Code> field becomes <Code>define-fungible-token</Code> and a{" "}
-        <Code>NonFungibleToken&lt;Id&gt;</Code> becomes <Code>define-non-fungible-token</Code>. the
-        runtime tracks balances, so there is no manual balance sheet.
+        tokens are storage too, but the runtime tracks every balance for you, so you never keep a
+        manual balance sheet.
       </P>
+      <H2 id="fungible">Fungible</H2>
+      <P>a <Code>FungibleToken</Code> field becomes <Code>define-fungible-token</Code>:</P>
+      <CodeBlock lang="rust" code={TOK_FT} />
       <P>
-        see the <Link href="/examples/coin">fungible</Link> and <Link href="/examples/nft">nft</Link>{" "}
-        examples for the full contracts.
+        mint and move it with the <Code>ft_*</Code> helpers, which map to the matching Clarity
+        builtins:
+      </P>
+      <CodeBlock lang="rust" code={TOK_FT_USE} />
+      <H2 id="non-fungible">Non-fungible</H2>
+      <P>
+        a <Code>NonFungibleToken&lt;Id&gt;</Code> works the same way with the <Code>nft_*</Code>{" "}
+        helpers, keyed by an id. see the full <Link href="/examples/coin">fungible</Link> and{" "}
+        <Link href="/examples/nft">nft</Link> contracts.
       </P>
     </>
   ),
   "sip-010": () => (
     <>
       <P>
-        mark a contract with <Code>#[impl_trait(...)]</Code> to promise it matches a trait; clarinet
-        enforces the signatures. the <Link href="/examples/token">token example</Link> is a full
-        SIP-010 fungible token that passes trait conformance, including the{" "}
-        <Code>(optional (buff 34))</Code> memo.
+        a trait is a fixed set of function signatures a contract promises to implement. SIP-010 is
+        the Stacks fungible-token standard, the shape wallets and exchanges expect.
       </P>
-      <Callout>a contract that implements a trait needs the trait contract present to verify.</Callout>
+      <P>
+        mark the struct with <Code>#[impl_trait("...")]</Code> and clarinet checks that every
+        function matches the trait exactly:
+      </P>
+      <CodeBlock lang="rust" code={SIP_IMPL} />
+      <P>
+        the trait fixes the shape of each function, down to the optional memo on transfer, and
+        clarust emits it verbatim:
+      </P>
+      <CodeBlock lang="rust" code={SIP_TRANSFER} />
+      <Callout>
+        a contract that implements a trait needs the trait contract present to verify. the full
+        token is in the <Link href="/examples/token">examples</Link>.
+      </Callout>
     </>
   ),
   verifying: () => (
