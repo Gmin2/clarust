@@ -19,7 +19,7 @@ function LogoMark() {
 const navItems: { label: string; to: string; external?: boolean }[] = [
   { label: "Docs", to: "/" },
   { label: "Examples", to: "/examples/counter" },
-  { label: "GitHub", to: "#", external: true },
+  { label: "GitHub", to: "https://github.com/Gmin2/clarust", external: true },
   { label: "Stacks", to: "https://www.stacks.co", external: true },
 ]
 
