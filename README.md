@@ -64,7 +64,6 @@ crates/clarust          the compiler: the IR, the clarity emitter, the rust fron
 crates/clarust-lang     real rust types you write contracts against (Uint, DataVar, Map, Response, ...)
 crates/clarust-macros   the #[contract] / #[public] / #[readonly] attribute macros
 contracts/              example contracts, each a real crate that compiles under rustc
-conformance/            the test gate
 ```
 
 it is a cargo workspace: `crates/*` are the toolchain, `contracts/*` are example
@@ -91,6 +90,11 @@ cargo build --release
 ./target/release/clarust contracts/counter/src/lib.rs --check
 ```
 
+```bash
+# the gate: every contract compiles under rustc and matches its frozen golden
+cargo test
+```
+
 ## what works today
 
 contracts: counter, ledger, vault (guarded withdraw), coin (fungible token), nft
@@ -113,6 +117,6 @@ back to the line in your `.rs`.
   but clarust rejects it, because Clarity has no such thing. the frontend errors
   clearly instead of emitting something broken.
 - a contract that implements a trait needs the trait contract present to verify, so
-  `--check` (which scaffolds a solo project) wont resolve it; the conformance runner
-  sets up the dependency. see `contracts/token`.
+  `--check` (which scaffolds a solo project) wont resolve it; verify the token against
+  the sip-010 trait in a real clarinet project. see `contracts/token`.
 - `--check` maps to the source line but reuses clarinet's column, so columns can be off.
